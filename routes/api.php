@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AdminAuthController;
+use App\Http\Controllers\Api\CategoryController;
 
 Route::post('/admin/login', [AdminAuthController::class, 'login']);
 
@@ -15,3 +16,5 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 });
+
+Route::get('/categories', [CategoryController::class, 'index']);
