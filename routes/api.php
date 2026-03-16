@@ -28,3 +28,4 @@ Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/channels', [ChannelController::class, 'index']);
 
 Route::get('/channel-connections', [ChannelConnectionController::class, 'index']);
+Route::post('/channel-connections', [ChannelConnectionController::class, 'store']);
