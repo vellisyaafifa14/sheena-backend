@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AdminAuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ChannelController;
+use App\Http\Controllers\Api\ChannelConnectionController;
 
 Route::post('/admin/login', [AdminAuthController::class, 'login']);
 
@@ -25,3 +26,5 @@ Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 
 Route::get('/channels', [ChannelController::class, 'index']);
+
+Route::get('/channel-connections', [ChannelConnectionController::class, 'index']);
