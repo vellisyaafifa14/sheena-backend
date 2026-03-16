@@ -19,4 +19,23 @@ class ChannelConnectionController extends Controller
             'data' => $connections
         ]);
     }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'id_channel' => 'required|exists:channels,id_channel',
+            'shop_id' => 'nullable|string|max:255',
+            'shop_name' => 'nullable|string|max:255',
+            'access_token' => 'nullable|string',
+            'refresh_token' => 'nullable|string',
+            'status_connection' => 'required|in:connected,disconnected, expired',
+        ]);
+
+        $connection = ChannelConnection::create($validated);
+
+        return response()->json([
+            'message' => 'Koneksi channel berhasil disimpan',
+            'data' => $connection
+        ], 201);
+    }
 }
