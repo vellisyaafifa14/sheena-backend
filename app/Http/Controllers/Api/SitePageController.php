@@ -57,4 +57,34 @@ class SitePageController extends Controller
             'data' => $page
         ], 201);
     }
+
+    public function update(Request $request, $id)
+    {
+        $page = SitePage::find($id);
+
+        if (!$page) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Page not found'
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'page_name' => 'required|string|max:100',
+            'page_slug' => 'required|string|max:255|unique:site_pages,page_slug,' . $id . ',id_page',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $page->update([
+            'page_name' => $validated['page_name'],
+            'page_slug' => $validated['page_slug'],
+            'is_active' => $validated['is_active'] ?? $page->is_active,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Site page updated successfully',
+            'data' => $page
+        ]);
+    }
 }
