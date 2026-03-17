@@ -40,6 +40,7 @@ Route::post('/sync/shopee/products', [ShopeeSyncController::class, 'syncProducts
 Route::get('/site-pages', [SitePageController::class, 'index']);
 Route::get('/site-pages/{slug}', [SitePageController::class, 'showBySlug']);
 Route::post('/site-pages', [SitePageController::class, 'store']);
+Route::put('/site-pages/{id}', [SitePageController::class, 'update']);
 
 Route::get('/contact-infos', [ContactInfoController::class, 'index']);
 
