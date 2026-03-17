@@ -44,6 +44,7 @@ Route::post('/site-pages', [SitePageController::class, 'store']);
 Route::get('/contact-infos', [ContactInfoController::class, 'index']);
 
 Route::get('/website-banners', [WebsiteBannerController::class, 'index']);
+Route::post('/website-banners', [WebsiteBannerController::class, 'store']);
 
 Route::get('/content-sections', [ContentSectionController::class, 'index']);
 Route::post('/content-sections', [ContentSectionController::class, 'store']);
