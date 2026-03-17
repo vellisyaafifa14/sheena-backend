@@ -88,4 +88,23 @@ class ContentSectionController extends Controller
             'data' => $section
         ]);
     }
+
+    public function destroy($id)
+{
+    $section = ContentSection::find($id);
+
+    if (!$section) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Content section not found'
+        ], 404);
+    }
+
+    $section->delete();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Content section deleted successfully'
+    ]);
+}
 }

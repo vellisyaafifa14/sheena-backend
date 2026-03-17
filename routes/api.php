@@ -54,3 +54,4 @@ Route::delete('/website-banners/{id}', [WebsiteBannerController::class, 'destroy
 Route::get('/content-sections', [ContentSectionController::class, 'index']);
 Route::post('/content-sections', [ContentSectionController::class, 'store']);
 Route::put('/content-sections/{id}', [ContentSectionController::class, 'update']);
+Route::delete('/content-sections/{id}', [ContentSectionController::class, 'destroy']);
