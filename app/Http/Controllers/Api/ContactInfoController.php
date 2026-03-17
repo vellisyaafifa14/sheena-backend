@@ -72,4 +72,23 @@ class ContactInfoController extends Controller
             'data' => $contactInfo
         ]);
     }
+
+    public function destroy($id)
+{
+    $contactInfo = ContactInfo::find($id);
+
+    if (!$contactInfo) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Contact info not found'
+        ], 404);
+    }
+
+    $contactInfo->delete();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Contact info deleted successfully'
+    ]);
+}
 }
