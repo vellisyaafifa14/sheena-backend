@@ -78,4 +78,23 @@ class WebsiteBannerController extends Controller
             'data' => $banner
         ]);
     }
+
+    public function destroy($id)
+{
+    $banner = WebsiteBanner::find($id);
+
+    if (!$banner) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Website banner not found'
+        ], 404);
+    }
+
+    $banner->delete();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Website banner deleted successfully'
+    ]);
+}
 }
