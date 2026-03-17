@@ -52,4 +52,40 @@ class ContentSectionController extends Controller
             'data' => $section
         ], 201);
     }
+
+    public function update(Request $request, $id)
+    {
+        $section = ContentSection::find($id);
+
+        if (!$section) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Content section not found'
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'id_page' => 'required|exists:site_pages,id_page',
+            'section_name' => 'required|string|max:100',
+            'section_key' => 'nullable|string|max:255',
+            'section_content' => 'nullable|string',
+            'sort_order' => 'nullable|integer',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $section->update([
+            'id_page' => $validated['id_page'],
+            'section_name' => $validated['section_name'],
+            'section_key' => $validated['section_key'] ?? null,
+            'section_content' => $validated['section_content'] ?? null,
+            'sort_order' => $validated['sort_order'] ?? 0,
+            'is_active' => $validated['is_active'] ?? true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Content section updated successfully',
+            'data' => $section
+        ]);
+    }
 }

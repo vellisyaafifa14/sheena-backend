@@ -49,3 +49,4 @@ Route::post('/website-banners', [WebsiteBannerController::class, 'store']);
 
 Route::get('/content-sections', [ContentSectionController::class, 'index']);
 Route::post('/content-sections', [ContentSectionController::class, 'store']);
+Route::put('/content-sections/{id}', [ContentSectionController::class, 'update']);
