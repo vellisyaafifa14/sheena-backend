@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ChannelController;
 use App\Http\Controllers\Api\ChannelConnectionController;
 use App\Http\Controllers\Api\ShopeeSyncController;
+use App\Http\Controllers\Api\SitePageController;
 
 Route::post('/admin/login', [AdminAuthController::class, 'login']);
 
@@ -32,3 +33,6 @@ Route::get('/channel-connections', [ChannelConnectionController::class, 'index']
 Route::post('/channel-connections', [ChannelConnectionController::class, 'store']);
 
 Route::post('/sync/shopee/products', [ShopeeSyncController::class, 'syncProducts']);
+
+Route::get('/site-pages', [SitePageController::class, 'index']);
+Route::get('/site-pages/{slug}', [SitePageController::class, 'showBySlug']);
