@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\SitePage;
+use Illuminate\Http\Request;
 
 class SitePageController extends Controller
 {
@@ -34,5 +35,26 @@ class SitePageController extends Controller
             'success' => true,
             'data' => $page
         ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'page_name' => 'required|string|max:100',
+            'page_slug' => 'required|string|max:255|unique:site_pages,page_slug',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $page = SitePage::create([
+            'page_name' => $validated['page_name'],
+            'page_slug' => $validated['page_slug'],
+            'is_active' => $validated['is_active'] ?? true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Site page created successfully',
+            'data' => $page
+        ], 201);
     }
 }
