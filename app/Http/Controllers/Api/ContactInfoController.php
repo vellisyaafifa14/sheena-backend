@@ -18,6 +18,29 @@ class ContactInfoController extends Controller
         ]);
     }
 
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'contact_type' => 'required|string|max:50',
+            'contact_label' => 'nullable|string|max:100',
+            'contact_value' => 'required|string|max:255',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $contactInfo = ContactInfo::create([
+            'contact_type' => $validated['contact_type'],
+            'contact_label' => $validated['contact_label'] ?? null,
+            'contact_value' => $validated['contact_value'],
+            'is_active' => $validated['is_active'] ?? true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Contact info created successfully',
+            'data' => $contactInfo
+        ], 201);
+    }
+
     public function update(Request $request, $id)
     {
         $contactInfo = ContactInfo::find($id);
