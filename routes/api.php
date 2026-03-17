@@ -45,6 +45,7 @@ Route::put('/site-pages/{id}', [SitePageController::class, 'update']);
 Route::get('/contact-infos', [ContactInfoController::class, 'index']);
 Route::post('/contact-infos', [ContactInfoController::class, 'store']);
 Route::put('/contact-infos/{id}', [ContactInfoController::class, 'update']);
+Route::delete('/contact-infos/{id}', [ContactInfoController::class, 'destroy']);
 
 Route::get('/website-banners', [WebsiteBannerController::class, 'index']);
 Route::post('/website-banners', [WebsiteBannerController::class, 'store']);
