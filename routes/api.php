@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ShopeeSyncController;
 use App\Http\Controllers\Api\SitePageController;
 use App\Http\Controllers\Api\ContactInfoController;
 use App\Http\Controllers\Api\WebsiteBannerController;
+use App\Http\Controllers\Api\ContentSectionController;
 
 Route::post('/admin/login', [AdminAuthController::class, 'login']);
 
@@ -43,3 +44,6 @@ Route::post('/site-pages', [SitePageController::class, 'store']);
 Route::get('/contact-infos', [ContactInfoController::class, 'index']);
 
 Route::get('/website-banners', [WebsiteBannerController::class, 'index']);
+
+Route::get('/content-sections', [ContentSectionController::class, 'index']);
+Route::post('/content-sections', [ContentSectionController::class, 'store']);
