@@ -48,6 +48,7 @@ Route::put('/contact-infos/{id}', [ContactInfoController::class, 'update']);
 
 Route::get('/website-banners', [WebsiteBannerController::class, 'index']);
 Route::post('/website-banners', [WebsiteBannerController::class, 'store']);
+Route::put('/website-banners/{id}', [WebsiteBannerController::class, 'update']);
 
 Route::get('/content-sections', [ContentSectionController::class, 'index']);
 Route::post('/content-sections', [ContentSectionController::class, 'store']);
