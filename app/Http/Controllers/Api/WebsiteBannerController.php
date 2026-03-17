@@ -44,4 +44,38 @@ class WebsiteBannerController extends Controller
             'data' => $banner
         ], 201);
     }
+
+    public function update(Request $request, $id)
+    {
+        $banner = WebsiteBanner::find($id);
+
+        if (!$banner) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Website banner not found'
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'banner_title' => 'nullable|string|max:150',
+            'banner_image' => 'required|string|max:255',
+            'banner_link' => 'nullable|string|max:255',
+            'sort_order' => 'nullable|integer',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $banner->update([
+            'banner_title' => $validated['banner_title'] ?? null,
+            'banner_image' => $validated['banner_image'],
+            'banner_link' => $validated['banner_link'] ?? null,
+            'sort_order' => $validated['sort_order'] ?? $banner->sort_order,
+            'is_active' => $validated['is_active'] ?? $banner->is_active,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Website banner updated successfully',
+            'data' => $banner
+        ]);
+    }
 }
