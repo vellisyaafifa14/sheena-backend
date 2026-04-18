@@ -33,6 +33,11 @@ class ShopeeService
                 'path' => $path,
                 'base_string' => $baseString,
                 'sign' => $sign,
+                'partner_id' => $partnerId,
+                'partner_key_preview' => substr($partnerKey, 0, 6),
+                'partner_key_length' => strlen($partnerKey),
+                'base_url' => $baseUrl,
+                'redirect_url' => $redirectUrl,
             ]
         ];
     }
