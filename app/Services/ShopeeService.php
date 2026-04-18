@@ -6,10 +6,10 @@ class ShopeeService
 {
     public function getAuthUrl(): array
     {
-        $partnerId = env('SHOPEE_PARTNER_ID');
-        $partnerKey = trim(env('SHOPEE_PARTNER_KEY'));
-        $redirectUrl = env('SHOPEE_REDIRECT_URL');
-        $baseUrl = rtrim(env('SHOPEE_BASE_URL'), '/');
+        $partnerId = trim((string) env('SHOPEE_PARTNER_ID'));
+        $partnerKey = trim((string) env('SHOPEE_PARTNER_KEY'));
+        $redirectUrl = trim((string) env('SHOPEE_REDIRECT_URL'));
+        $baseUrl = rtrim((string) env('SHOPEE_BASE_URL'), '/');
 
         $timestamp = time();
         $path = '/api/v2/shop/auth_partner';
@@ -17,12 +17,11 @@ class ShopeeService
         $baseString = $partnerId . $path . $timestamp;
         $sign = hash_hmac('sha256', $baseString, $partnerKey);
 
-        $authUrl = $baseUrl . $path . '?' . http_build_query([
-            'partner_id' => $partnerId,
-            'timestamp' => $timestamp,
-            'sign' => $sign,
-            'redirect' => $redirectUrl,
-        ]);
+        $authUrl = $baseUrl . $path
+            . '?partner_id=' . $partnerId
+            . '&timestamp=' . $timestamp
+            . '&sign=' . $sign
+            . '&redirect=' . rawurlencode($redirectUrl);
 
         return [
             'success' => true,
