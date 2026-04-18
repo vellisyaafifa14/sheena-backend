@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\SitePageController;
 use App\Http\Controllers\Api\ContactInfoController;
 use App\Http\Controllers\Api\WebsiteBannerController;
 use App\Http\Controllers\Api\ContentSectionController;
+use App\Http\Controllers\Api\ShopeeAuthController;
 
 Route::post('/admin/login', [AdminAuthController::class, 'login']);
 
@@ -35,6 +36,7 @@ Route::get('/channels', [ChannelController::class, 'index']);
 Route::get('/channel-connections', [ChannelConnectionController::class, 'index']);
 Route::post('/channel-connections', [ChannelConnectionController::class, 'store']);
 
+Route::get('/shopee/callback', [ShopeeAuthController::class, 'callback']);
 Route::post('/sync/shopee/products', [ShopeeSyncController::class, 'syncProducts']);
 
 Route::get('/site-pages', [SitePageController::class, 'index']);
@@ -56,3 +58,4 @@ Route::get('/content-sections', [ContentSectionController::class, 'index']);
 Route::post('/content-sections', [ContentSectionController::class, 'store']);
 Route::put('/content-sections/{id}', [ContentSectionController::class, 'update']);
 Route::delete('/content-sections/{id}', [ContentSectionController::class, 'destroy']);
+
