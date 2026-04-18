@@ -7,9 +7,9 @@ class ShopeeService
     public function getAuthUrl(): array
     {
         $partnerId = env('SHOPEE_PARTNER_ID');
-        $partnerKey = env('SHOPEE_PARTNER_KEY');
+        $partnerKey = trim(env('SHOPEE_PARTNER_KEY'));
         $redirectUrl = env('SHOPEE_REDIRECT_URL');
-        $baseUrl = env('SHOPEE_BASE_URL');
+        $baseUrl = rtrim(env('SHOPEE_BASE_URL'), '/');
 
         $timestamp = time();
         $path = '/api/v2/shop/auth_partner';
@@ -31,6 +31,8 @@ class ShopeeService
                 'auth_url' => $authUrl,
                 'timestamp' => $timestamp,
                 'path' => $path,
+                'base_string' => $baseString,
+                'sign' => $sign,
             ]
         ];
     }
