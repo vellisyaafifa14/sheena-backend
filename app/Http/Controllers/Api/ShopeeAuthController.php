@@ -1,43 +1,32 @@
 <?php
 
-namespace App\Services;
+namespace App\Http\Controllers\Api;
 
-class ShopeeService
+use App\Http\Controllers\Controller;
+use App\Services\ShopeeService;
+use Illuminate\Http\Request;
+
+class ShopeeAuthController extends Controller
 {
-    public function getAuthUrl(): array
+    protected ShopeeService $shopeeService;
+
+    public function __construct(ShopeeService $shopeeService)
     {
-        $partnerId = trim((string) env('SHOPEE_PARTNER_ID'));
-        $partnerKey = trim((string) env('SHOPEE_PARTNER_KEY'));
-        $redirectUrl = trim((string) env('SHOPEE_REDIRECT_URL'));
-        $baseUrl = rtrim((string) env('SHOPEE_BASE_URL'), '/');
+        $this->shopeeService = $shopeeService;
+    }
 
-        $timestamp = time();
-        $path = '/api/v2/shop/auth_partner';
+    public function getAuthUrl()
+    {
+        $result = $this->shopeeService->getAuthUrl();
+        return response()->json($result);
+    }
 
-        $baseString = $partnerId . $path . $timestamp;
-        $sign = hash_hmac('sha256', $baseString, $partnerKey);
-
-        $authUrl = $baseUrl . $path
-            . '?partner_id=' . $partnerId
-            . '&timestamp=' . $timestamp
-            . '&sign=' . $sign
-            . '&redirect=' . rawurlencode($redirectUrl);
-
-        return [
+    public function callback(Request $request)
+    {
+        return response()->json([
             'success' => true,
-            'message' => 'Shopee auth URL generated successfully',
-            'data' => [
-                'auth_url' => $authUrl,
-                'timestamp' => $timestamp,
-                'path' => $path,
-                'base_string' => $baseString,
-                'sign' => $sign,
-                'partner_id' => $partnerId,
-                'partner_key_preview' => substr($partnerKey, 0, 6),
-                'partner_key_length' => strlen($partnerKey),
-                'base_url' => $baseUrl,
-                'redirect_url' => $redirectUrl,
-            ]
-        ];
+            'message' => 'Shopee callback received',
+            'query' => $request->query(),
+        ]);
     }
 }
