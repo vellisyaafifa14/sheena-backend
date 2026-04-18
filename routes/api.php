@@ -36,6 +36,7 @@ Route::get('/channels', [ChannelController::class, 'index']);
 Route::get('/channel-connections', [ChannelConnectionController::class, 'index']);
 Route::post('/channel-connections', [ChannelConnectionController::class, 'store']);
 
+Route::get('/shopee/auth-url', [ShopeeAuthController::class, 'getAuthUrl']);
 Route::get('/shopee/callback', [ShopeeAuthController::class, 'callback']);
 Route::post('/sync/shopee/products', [ShopeeSyncController::class, 'syncProducts']);
 
