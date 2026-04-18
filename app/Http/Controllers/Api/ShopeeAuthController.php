@@ -1,32 +1,43 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Services;
 
-use App\Http\Controllers\Controller;
-use App\Services\ShopeeService;
-use Illuminate\Http\Request;
-
-class ShopeeAuthController extends Controller
+class ShopeeService
 {
-    protected ShopeeService $shopeeService;
-
-    public function __construct(ShopeeService $shopeeService)
+    public function getAuthUrl(): array
     {
-        $this->shopeeService = $shopeeService;
-    }
+        $partnerId = trim((string) env('SHOPEE_PARTNER_ID'));
+        $partnerKey = trim((string) env('SHOPEE_PARTNER_KEY'));
+        $redirectUrl = trim((string) env('SHOPEE_REDIRECT_URL'));
+        $baseUrl = rtrim((string) env('SHOPEE_BASE_URL'), '/');
 
-    public function getAuthUrl()
-    {
-        $result = $this->shopeeService->getAuthUrl();
-        return response()->json($result);
-    }
+        $timestamp = time();
+        $path = '/api/v2/shop/auth_partner';
 
-    public function callback(Request $request)
-    {
-        return response()->json([
+        $baseString = $partnerId . $path . $timestamp;
+        $sign = hash_hmac('sha256', $baseString, $partnerKey);
+
+        $authUrl = $baseUrl . $path
+            . '?partner_id=' . $partnerId
+            . '&timestamp=' . $timestamp
+            . '&sign=' . $sign
+            . '&redirect=' . rawurlencode($redirectUrl);
+
+        return [
             'success' => true,
-            'message' => 'Shopee callback received',
-            'query' => $request->query(),
-        ]);
+            'message' => 'Shopee auth URL generated successfully',
+            'data' => [
+                'auth_url' => $authUrl,
+                'timestamp' => $timestamp,
+                'path' => $path,
+                'base_string' => $baseString,
+                'sign' => $sign,
+                'partner_id' => $partnerId,
+                'partner_key_preview' => substr($partnerKey, 0, 6),
+                'partner_key_length' => strlen($partnerKey),
+                'base_url' => $baseUrl,
+                'redirect_url' => $redirectUrl,
+            ]
+        ];
     }
 }
