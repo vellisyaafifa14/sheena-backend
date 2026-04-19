@@ -20,6 +20,13 @@ class ShopeeAuthController extends Controller
         $code = $request->query('code');
         $shopId = $request->query('shop_id');
 
+        if (!function_exists('curl_init')) {
+        return response()->json([
+            'success' => false,
+            'message' => 'cURL not available on server',
+        ], 500);
+    }
+
         if (!$code || !$shopId) {
             return response()->json([
                 'success' => false,
