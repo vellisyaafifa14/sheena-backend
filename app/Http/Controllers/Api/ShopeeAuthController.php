@@ -15,18 +15,26 @@ class ShopeeAuthController extends Controller
         $this->shopeeService = $shopeeService;
     }
 
-    public function getAuthUrl()
-    {
-        $result = $this->shopeeService->getAuthUrl();
-        return response()->json($result);
-    }
-
     public function callback(Request $request)
     {
+        $code = $request->query('code');
+        $shopId = $request->query('shop_id');
+
+        if (!$code || !$shopId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Missing code or shop_id',
+                'query' => $request->query(),
+            ], 400);
+        }
+
+        $tokenResult = $this->shopeeService->getAccessToken($code, $shopId);
+
         return response()->json([
             'success' => true,
             'message' => 'Shopee callback received',
             'query' => $request->query(),
+            'token_result' => $tokenResult,
         ]);
     }
 }
