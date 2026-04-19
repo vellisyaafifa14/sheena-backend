@@ -15,17 +15,24 @@ class ShopeeAuthController extends Controller
         $this->shopeeService = $shopeeService;
     }
 
+    public function getAuthUrl()
+    {
+        $result = $this->shopeeService->getAuthUrl();
+
+        return response()->json($result);
+    }
+
     public function callback(Request $request)
     {
         $code = $request->query('code');
         $shopId = $request->query('shop_id');
 
         if (!function_exists('curl_init')) {
-        return response()->json([
-            'success' => false,
-            'message' => 'cURL not available on server',
-        ], 500);
-    }
+            return response()->json([
+                'success' => false,
+                'message' => 'cURL not available on server',
+            ], 500);
+        }
 
         if (!$code || !$shopId) {
             return response()->json([
