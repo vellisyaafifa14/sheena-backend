@@ -10,18 +10,18 @@ class ShopeeService
         $partnerKey = trim((string) env('SHOPEE_PARTNER_KEY'));
         $redirectUrl = trim((string) env('SHOPEE_REDIRECT_URL'));
         $baseUrl = rtrim((string) env('SHOPEE_BASE_URL'), '/');
-
+    
         $timestamp = time();
         $path = '/api/v2/shop/auth_partner';
 
-        $baseString = $partnerId . $path . $timestamp;
+        $baseString = $partnerId . $path . $timestamp . $code . $shopId;
         $sign = hash_hmac('sha256', $baseString, $partnerKey);
 
         $authUrl = $baseUrl . $path
             . '?partner_id=' . $partnerId
             . '&timestamp=' . $timestamp
             . '&sign=' . $sign
-            . '&redirect=' . rawurlencode($redirectUrl);
+            . '&redirect=' . urlencode($redirectUrl);
 
         return [
             'success' => true,
