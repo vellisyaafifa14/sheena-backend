@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\ContactInfoController;
 use App\Http\Controllers\Api\WebsiteBannerController;
 use App\Http\Controllers\Api\ContentSectionController;
 use App\Http\Controllers\Api\ShopeeAuthController;
+use App\Http\Controllers\Api\AdminDashboardController;
 
 Route::post('/admin/login', [AdminAuthController::class, 'login']);
 
@@ -25,6 +26,9 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 });
+
+Route::get('/admin/dashboard/summary', [AdminDashboardController::class, 'summary']);
+Route::get('/admin/sales', [AdminDashboardController::class, 'sales']);
 
 Route::get('/categories', [CategoryController::class, 'index']);
 
