@@ -34,4 +34,17 @@ class AdminDashboardController extends Controller
         ]
     ]);
 }
+
+public function reportsSales()
+{
+    $sales = \App\Models\Order::selectRaw('DATE(created_at) as date, COUNT(*) as total_orders, COALESCE(SUM(total_amount), 0) as total_revenue')
+        ->groupByRaw('DATE(created_at)')
+        ->orderByRaw('DATE(created_at) DESC')
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'data' => $sales,
+    ]);
+}
 }
