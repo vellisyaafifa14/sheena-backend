@@ -54,7 +54,7 @@ class ShopeeService
         $timestamp = time();
         $path = '/api/v2/auth/token/get';
 
-        $baseString = $partnerId . $path . $timestamp . $code . $shopId;
+        $baseString = $partnerId . $path . $timestamp;
         $sign = hash_hmac('sha256', $baseString, $partnerKey);
 
         $url = $baseUrl . $path;
