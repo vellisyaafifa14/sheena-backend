@@ -49,7 +49,7 @@ class ShopeeService
 
         $code = trim($code);
         $shopId = (int) trim($shopId);
-        dd(env('SHOPEE_API_BASE_URL'));
+        #dd(env('SHOPEE_API_BASE_URL'));
 
         $timestamp = time();
         $path = '/api/v2/auth/token/get';
