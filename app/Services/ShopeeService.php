@@ -294,7 +294,7 @@ public function getOrders(): array
     $timestamp = time();
     $path = '/api/v2/order/get_order_list';
 
-    $timeFrom = now()->subDays(15)->timestamp;
+    $timeFrom = now()->subDays(100)->timestamp;
     $timeTo = now()->timestamp;
 
     $baseString = $partnerId . $path . $timestamp . $accessToken . $shopId;
@@ -311,7 +311,7 @@ public function getOrders(): array
         'time_to' => $timeTo,
         'page_size' => 20,
         'cursor' => '',
-        'order_status' => 'READY_TO_SHIP',
+        #'order_status' => 'READY_TO_SHIP',
         'response_optional_fields' => 'order_status,total_amount,item_list',
     ]);
 
