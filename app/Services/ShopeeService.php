@@ -312,7 +312,7 @@ public function getOrders(): array
         'page_size' => 20,
         'cursor' => '',
         #'order_status' => 'READY_TO_SHIP',
-        'response_optional_fields' => 'order_status,total_amount,item_list',
+        #'response_optional_fields' => 'order_status,total_amount,item_list',
     ]);
 
     $url = $baseUrl . $path . '?' . $query;
