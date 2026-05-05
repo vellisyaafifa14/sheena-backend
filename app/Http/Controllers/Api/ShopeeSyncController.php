@@ -89,8 +89,103 @@ class ShopeeSyncController extends Controller
 
 public function syncOrders()
 {
-    $result = $this->shopeeService->getOrders();
+    $listResult = $this->shopeeService->getOrders();
 
-    return response()->json($result);
+    if (
+        !$listResult['success'] ||
+        empty($listResult['response']['response']['order_list'])
+    ) {
+        return response()->json($listResult);
+    }
+
+    $connection = \App\Models\ChannelConnection::where('id_channel', 1)
+        ->where('status_connection', 'connected')
+        ->latest('id_connection')
+        ->first();
+
+    if (!$connection) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Koneksi Shopee tidak ditemukan',
+        ], 404);
+    }
+
+    $orderSnList = collect($listResult['response']['response']['order_list'])
+        ->pluck('order_sn')
+        ->filter()
+        ->values()
+        ->toArray();
+
+    $detailResult = $this->shopeeService->getOrderDetail($orderSnList);
+
+    if (
+        !$detailResult['success'] ||
+        empty($detailResult['response']['response']['order_list'])
+    ) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal ambil detail order',
+            'list_result' => $listResult,
+            'detail_result' => $detailResult,
+        ]);
+    }
+
+    $savedOrders = [];
+    $skippedItems = [];
+
+    foreach ($detailResult['response']['response']['order_list'] as $orderData) {
+        $order = \App\Models\Order::updateOrCreate(
+            [
+                'channel_order_id' => $orderData['order_sn'],
+            ],
+            [
+                'id_connection' => $connection->id_connection,
+                'total_amount' => $orderData['total_amount'] ?? 0,
+                'order_status' => $orderData['order_status'] ?? 'unknown',
+                'ordered_at_channel' => !empty($orderData['create_time'])
+                    ? \Carbon\Carbon::createFromTimestamp($orderData['create_time'])
+                    : null,
+            ]
+        );
+
+        foreach (($orderData['item_list'] ?? []) as $item) {
+            $listing = \App\Models\ProductListing::where('id_connection', $connection->id_connection)
+                ->where('channel_product_id', $item['item_id'] ?? null)
+                ->first();
+
+            if (!$listing) {
+                $skippedItems[] = [
+                    'order_sn' => $orderData['order_sn'],
+                    'item_id' => $item['item_id'] ?? null,
+                    'reason' => 'Product listing not found',
+                ];
+                continue;
+            }
+
+            \App\Models\OrderItem::updateOrCreate(
+                [
+                    'id_order' => $order->id_order,
+                    'id_listing' => $listing->id_listing,
+                ],
+                [
+                    'price_snapshot' => $item['model_discounted_price']
+                        ?? $item['model_original_price']
+                        ?? 0,
+                    'title_snapshot' => $item['item_name'] ?? '-',
+                    'quantity' => $item['model_quantity_purchased']
+                        ?? $item['quantity_purchased']
+                        ?? 1,
+                ]
+            );
+        }
+
+        $savedOrders[] = $order->channel_order_id;
+    }
+
+    return response()->json([
+        'success' => true,
+        'saved_orders' => $savedOrders,
+        'skipped_items' => $skippedItems,
+    ]);
 }
 }

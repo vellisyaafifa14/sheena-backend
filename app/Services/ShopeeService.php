@@ -375,7 +375,7 @@ public function getOrderDetail(array $orderSnList): array
         'shop_id' => $shopId,
         'sign' => $sign,
         'order_sn_list' => implode(',', $orderSnList),
-        'response_optional_fields' => 'item_list,total_amount',
+        'response_optional_fields' => 'item_list,total_amount,order_status,create_time',
     ]);
 
     $url = $baseUrl . $path . '?' . $query;
