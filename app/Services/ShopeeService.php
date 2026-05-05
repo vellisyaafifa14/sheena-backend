@@ -294,7 +294,7 @@ public function getOrders(): array
     $timestamp = time();
     $path = '/api/v2/order/get_order_list';
 
-    $timeFrom = now()->subDays(100)->timestamp;
+    $timeFrom = now()->subDays(15)->timestamp;
     $timeTo = now()->timestamp;
 
     $baseString = $partnerId . $path . $timestamp . $accessToken . $shopId;
