@@ -48,6 +48,9 @@ class ShopeeSyncController extends Controller
         }
 
         $data = $detail['response']['response']['item_list'][0];
+        return response()->json([
+    'debug_product_detail' => $data,
+]);
 
         // ===== PRODUCT =====
         $product = \App\Models\Product::updateOrCreate(
