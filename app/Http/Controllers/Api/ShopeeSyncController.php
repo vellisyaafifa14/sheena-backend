@@ -48,13 +48,8 @@ class ShopeeSyncController extends Controller
         }
 
         $data = $detail['response']['response']['item_list'][0];
-        $modelResult = $this->shopeeService->getProductModels($itemId);
-
-return response()->json([
-    'debug_product_detail' => $data,
-    'debug_model_result' => $modelResult,
-]);
-
+}
+        
         // ===== PRODUCT =====
         $product = \App\Models\Product::updateOrCreate(
             ['product_name' => $data['item_name']],
@@ -67,30 +62,47 @@ return response()->json([
             ]
         );
 
-        // ===== LISTING =====
+        // ===== LISTING / VARIANTS =====
+        if (!empty($data['has_model'])) {
+            $modelResult = $this->shopeeService->getProductModels($itemId);
+            $models = $modelResult['response']['response']['model'] ?? [];
+
+        foreach ($models as $model) {
+            \App\Models\ProductListing::updateOrCreate(
+                [
+                    'channel_product_id' => $data['item_id'],
+                    'variant_id' => $model['model_id'],
+                    'id_connection' => $connection->id_connection,
+                ],
+                [
+                    'id_product' => $product->id_product,
+                    'variant_name' => $model['model_name'] ?? null,
+                    'channel_sku' => $model['model_sku'] ?? null,
+                    'price' => $model['price_info'][0]['current_price'] ?? 0,
+                    'stock' => $model['stock_info_v2']['summary_info']['total_available_stock'] ?? 0,
+                    'product_url' => null,
+                    'listing_status' => ($model['model_status'] ?? '') === 'MODEL_NORMAL' ? 'active' : 'inactive',
+                ]
+            );
+        }
+    } else {
         \App\Models\ProductListing::updateOrCreate(
             [
                 'channel_product_id' => $data['item_id'],
+                'variant_id' => null,
                 'id_connection' => $connection->id_connection,
             ],
             [
                 'id_product' => $product->id_product,
+                'variant_name' => null,
+                'channel_sku' => $data['item_sku'] ?? null,
                 'price' => $data['price_info'][0]['current_price'] ?? 0,
                 'stock' => $data['stock_info_v2']['summary_info']['total_available_stock'] ?? 0,
-                'listing_status' => 'active',
-                'variant_name' => null,
-                'channel_sku' => null,
                 'product_url' => null,
+                'listing_status' => 'active',
             ]
         );
-
-        $saved[] = $product->product_name;
     }
-
-    return response()->json([
-        'success' => true,
-        'saved_products' => $saved,
-    ]);
 }
 
 public function syncOrders()
