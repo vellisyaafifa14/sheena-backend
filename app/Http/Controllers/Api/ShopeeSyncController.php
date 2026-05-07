@@ -47,9 +47,11 @@ class ShopeeSyncController extends Controller
             continue;
         }
 
-        $data = $detail['response']['response']['item_list'][0];
-        return response()->json([
+        $modelResult = $this->shopeeService->getProductModels($itemId);
+
+return response()->json([
     'debug_product_detail' => $data,
+    'debug_model_result' => $modelResult,
 ]);
 
         // ===== PRODUCT =====

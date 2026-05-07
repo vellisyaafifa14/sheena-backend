@@ -397,4 +397,65 @@ public function getOrderDetail(array $orderSnList): array
         'raw_response' => $response,
     ];
 }
+
+public function getProductModels(int $itemId): array
+{
+    $partnerId = trim((string) env('SHOPEE_PARTNER_ID'));
+    $partnerKey = trim((string) env('SHOPEE_PARTNER_KEY'));
+    $baseUrl = rtrim((string) env('SHOPEE_API_BASE_URL'), '/');
+
+    $connection = \App\Models\ChannelConnection::where('id_channel', 1)
+        ->where('status_connection', 'connected')
+        ->latest('id_connection')
+        ->first();
+
+    if (!$connection) {
+        return [
+            'success' => false,
+            'message' => 'Koneksi Shopee tidak ditemukan',
+        ];
+    }
+
+    $accessToken = $connection->access_token;
+    $shopId = (int) $connection->shop_id;
+
+    $timestamp = time();
+    $path = '/api/v2/product/get_model_list';
+
+    $baseString = $partnerId . $path . $timestamp . $accessToken . $shopId;
+    $sign = hash_hmac('sha256', $baseString, $partnerKey);
+
+    $query = http_build_query([
+        'partner_id' => $partnerId,
+        'timestamp' => $timestamp,
+        'access_token' => $accessToken,
+        'shop_id' => $shopId,
+        'sign' => $sign,
+        'item_id' => $itemId,
+    ]);
+
+    $url = $baseUrl . $path . '?' . $query;
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_HTTPGET, true);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    return [
+        'success' => $httpCode >= 200 && $httpCode < 300,
+        'http_code' => $httpCode,
+        'curl_error' => $curlError,
+        'response' => json_decode($response, true),
+        'raw_response' => $response,
+        'debug' => [
+            'shop_id' => $shopId,
+            'item_id' => $itemId,
+            'path' => $path,
+        ],
+    ];
+}
 }
