@@ -83,7 +83,7 @@ class ShopeeSyncController extends Controller
                             'channel_sku' => $model['model_sku'] ?? null,
                             'price' => $model['price_info'][0]['current_price'] ?? 0,
                             'stock' => $model['stock_info_v2']['summary_info']['total_available_stock'] ?? 0,
-                            'product_url' => null,
+                            'product_url' => 'https://shopee.co.id/product/' . $connection->shop_id . '/' . $data['item_id'],
                             'listing_status' => ($model['model_status'] ?? '') === 'MODEL_NORMAL' ? 'active' : 'inactive',
                         ]
                     );
