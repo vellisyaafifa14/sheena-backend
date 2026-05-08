@@ -11,17 +11,18 @@ use App\Models\OrderItem;
 class AdminDashboardController extends Controller
 {
     public function summary()
-    {
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'total_products' => Product::count(),
-                'total_channel_connections' => ChannelConnection::count(),
-                'total_orders' => Order::count(),
-                'total_order_items' => OrderItem::count(),
-            ]
-        ]);
-    }
+{
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'total_products' => \App\Models\Product::count(),
+            'total_listings' => \App\Models\ProductListing::count(),
+            'total_orders' => \App\Models\Order::count(),
+            'total_revenue' => \App\Models\Order::sum('total_amount') ?? 0,
+            'total_items_sold' => \App\Models\OrderItem::sum('quantity') ?? 0,
+        ]
+    ]);
+}
 
     public function sales()
 {
