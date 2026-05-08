@@ -18,16 +18,17 @@ class AdminAuthController extends Controller
 
         $admin = Admin::where('email', $request->email)->first();
 
-        if (!$admin || !Hash::check($request->password, $admin->password)) {
-            return response()->json([
+       return response()->json([
     'input_password' => $request->password,
     'hash' => $admin->password,
     'check' => Hash::check($request->password, $admin->password),
 ]);
-            return response()->json([
-                'message' => 'Email atau password salah'
-            ], 401);
-        }
+
+if (!$admin || !Hash::check($request->password, $admin->password)) {
+    return response()->json([
+        'message' => 'Email atau password salah'
+    ], 401);
+}
 
         $token = $admin->createToken('admin-token')->plainTextToken;
 
