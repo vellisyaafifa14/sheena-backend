@@ -51,7 +51,7 @@ public function reportsSales()
 
 public function latestOrders()
 {
-    $orders = \App\Models\Order::with(['orderItems.productListing.product'])
+    $orders = \App\Models\Order::with('orderItems')
         ->orderByDesc('ordered_at_channel')
         ->limit(5)
         ->get();
