@@ -20,6 +20,11 @@ class AdminAuthController extends Controller
 
         if (!$admin || !Hash::check($request->password, $admin->password)) {
             return response()->json([
+    'input_password' => $request->password,
+    'hash' => $admin->password,
+    'check' => Hash::check($request->password, $admin->password),
+]);
+            return response()->json([
                 'message' => 'Email atau password salah'
             ], 401);
         }
