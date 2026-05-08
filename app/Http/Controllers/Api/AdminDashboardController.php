@@ -48,4 +48,17 @@ public function reportsSales()
         'data' => $sales,
     ]);
 }
+
+public function latestOrders()
+{
+    $orders = \App\Models\Order::with(['orderItems.productListing.product'])
+        ->orderByDesc('ordered_at_channel')
+        ->limit(5)
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'data' => $orders,
+    ]);
+}
 }
