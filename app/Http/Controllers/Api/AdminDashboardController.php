@@ -26,7 +26,6 @@ class AdminDashboardController extends Controller
         ]
     ]);
 }
-
     public function sales()
 {
     return response()->json([
