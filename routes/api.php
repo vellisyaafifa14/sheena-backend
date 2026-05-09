@@ -31,7 +31,7 @@ Route::get('/admin/dashboard/summary', [AdminDashboardController::class, 'summar
 Route::get('/admin/sales', [AdminDashboardController::class, 'sales']);
 Route::get('/admin/reports/sales', [AdminDashboardController::class, 'reportsSales']);
 Route::get('/admin/dashboard/latest-orders', [AdminDashboardController::class, 'latestOrders']);
-Route::get('/dashboard/best-selling', [AdminDashboardController::class, 'bestSellingProducts']);
+Route::get('/admin/dashboard/best-selling', [AdminDashboardController::class, 'bestSellingProducts']);
 
 Route::get('/categories', [CategoryController::class, 'index']);
 
