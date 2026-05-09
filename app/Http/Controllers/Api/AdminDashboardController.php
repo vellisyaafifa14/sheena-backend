@@ -65,4 +65,23 @@ public function latestOrders()
         'data' => $orders,
     ]);
 }
+
+public function bestSellingProducts()
+{
+    $products = \App\Models\OrderItem::selectRaw('
+            product_name,
+            product_image,
+            SUM(quantity) as total_sold,
+            AVG(price) as avg_price
+        ')
+        ->groupBy('product_name', 'product_image')
+        ->orderByDesc('total_sold')
+        ->limit(5)
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'data' => $products,
+    ]);
+}
 }
