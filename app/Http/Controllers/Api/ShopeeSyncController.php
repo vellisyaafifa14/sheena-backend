@@ -178,9 +178,21 @@ class ShopeeSyncController extends Controller
             );
 
             foreach (($orderData['item_list'] ?? []) as $item) {
-                $listing = \App\Models\ProductListing::where('id_connection', $connection->id_connection)
-                    ->where('channel_product_id', $item['item_id'] ?? null)
-                    ->first();
+        
+                $listingQuery = \App\Models\ProductListing::where('id_connection', $connection->id_connection)
+                    ->where('channel_product_id', $item['item_id'] ?? null);
+
+                if (!empty($item['model_id'])) {
+                    $listingQuery->where('variant_id', $item['model_id']);
+                }
+
+                $listing = $listingQuery->first();
+
+                if (!$listing) {
+                    $listing = \App\Models\ProductListing::where('id_connection', $connection->id_connection)
+                        ->where('channel_product_id', $item['item_id'] ?? null)
+                        ->first();  
+                    }
 
                 if (!$listing) {
                     $skippedItems[] = [
