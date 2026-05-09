@@ -12,14 +12,17 @@ class AdminDashboardController extends Controller
 {
     public function summary()
 {
+    $completedOrderIds = \App\Models\Order::where('order_status', 'COMPLETED')
+        ->pluck('id_order');
+
     return response()->json([
         'success' => true,
         'data' => [
-            'total_products' => \App\Models\Product::count(),
+            'total_products' => \App\Models\ProductListing::sum('stock') ?? 0,
             'total_listings' => \App\Models\ProductListing::count(),
             'total_orders' => \App\Models\Order::count(),
-            'total_revenue' => \App\Models\Order::sum('total_amount') ?? 0,
-            'total_items_sold' => \App\Models\OrderItem::sum('quantity') ?? 0,
+            'total_revenue' => \App\Models\Order::where('order_status', 'COMPLETED')->sum('total_amount') ?? 0,
+            'total_items_sold' => \App\Models\OrderItem::whereIn('id_order', $completedOrderIds)->sum('quantity') ?? 0,
         ]
     ]);
 }
