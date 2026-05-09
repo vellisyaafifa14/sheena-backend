@@ -32,4 +32,9 @@ class OrderItem extends Model
     {
         return $this->belongsTo(ProductListing::class, 'id_listing', 'id_listing');
     }
+
+    public function product()
+{
+    return $this->belongsTo(Product::class);
+}
 }
