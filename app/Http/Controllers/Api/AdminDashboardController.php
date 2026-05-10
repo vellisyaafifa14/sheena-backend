@@ -25,16 +25,59 @@ class AdminDashboardController extends Controller
 }
     public function sales()
 {
+    $currentStart = now()->subDays(15);
+    $currentEnd = now();
+
+    $previousStart = now()->subDays(30);
+    $previousEnd = now()->subDays(15);
+
+    $currentRevenue = \App\Models\Order::whereBetween('ordered_at_channel', [$currentStart, $currentEnd])
+        ->sum('total_amount');
+
+    $currentOrders = \App\Models\Order::whereBetween('ordered_at_channel', [$currentStart, $currentEnd])
+        ->count();
+
+    $previousRevenue = \App\Models\Order::whereBetween('ordered_at_channel', [$previousStart, $previousEnd])
+        ->sum('total_amount');
+
+    $previousOrders = \App\Models\Order::whereBetween('ordered_at_channel', [$previousStart, $previousEnd])
+        ->count();
+
+    $currentAvgOrder = $currentOrders > 0 ? $currentRevenue / $currentOrders : 0;
+    $previousAvgOrder = $previousOrders > 0 ? $previousRevenue / $previousOrders : 0;
+
+    $growth = function ($current, $previous) {
+        if ($previous == 0) {
+            return $current > 0 ? 100 : 0;
+        }
+
+        return round((($current - $previous) / $previous) * 100, 1);
+    };
+
     return response()->json([
         'success' => true,
         'data' => [
-            'total_orders' => \App\Models\Order::count(),
-            'total_items_sold' => \App\Models\OrderItem::sum('quantity') ?? 0,
-            'total_revenue' => \App\Models\Order::sum('total_amount') ?? 0,
+            'total_orders' => $currentOrders,
+            'total_revenue' => $currentRevenue,
+            'avg_order_value' => $currentAvgOrder,
+
+            'revenue_growth' => $growth($currentRevenue, $previousRevenue),
+            'orders_growth' => $growth($currentOrders, $previousOrders),
+            'avg_order_growth' => $growth($currentAvgOrder, $previousAvgOrder),
+
+            'period' => [
+                'current' => [
+                    'start' => $currentStart->toDateString(),
+                    'end' => $currentEnd->toDateString(),
+                ],
+                'previous' => [
+                    'start' => $previousStart->toDateString(),
+                    'end' => $previousEnd->toDateString(),
+                ],
+            ],
         ]
     ]);
 }
-
 public function reportsSales()
 {
     $sales = \App\Models\Order::selectRaw('
