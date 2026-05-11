@@ -19,7 +19,7 @@ class ShopeeAuthController extends Controller
     {
         $result = $this->shopeeService->getAuthUrl();
 
-        return response()->json($result);
+        return redirect('http://localhost:5173/admin/dashboard?shopee=connected');
     }
 
     public function callback(Request $request)
