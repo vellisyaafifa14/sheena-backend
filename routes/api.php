@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\WebsiteBannerController;
 use App\Http\Controllers\Api\ContentSectionController;
 use App\Http\Controllers\Api\ShopeeAuthController;
 use App\Http\Controllers\Api\AdminDashboardController;
+use App\Http\Controllers\Api\HomeContentController;
 
 Route::post('/admin/login', [AdminAuthController::class, 'login']);
 
@@ -32,6 +33,9 @@ Route::get('/admin/sales', [AdminDashboardController::class, 'sales']);
 Route::get('/admin/reports/sales', [AdminDashboardController::class, 'reportsSales']);
 Route::get('/admin/dashboard/latest-orders', [AdminDashboardController::class, 'latestOrders']);
 Route::get('/admin/dashboard/best-selling', [AdminDashboardController::class, 'bestSellingProducts']);
+
+Route::get('/admin/home-content', [HomeContentController::class, 'index']);
+Route::post('/admin/home-content', [HomeContentController::class, 'update']);
 
 Route::get('/categories', [CategoryController::class, 'index']);
 
