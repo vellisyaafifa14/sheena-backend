@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Services;
+use Illuminate\Support\Facades\Http;
 
 class ShopeeService
 {
@@ -95,23 +96,48 @@ class ShopeeService
         ];
     }
 
+public function getValidConnection()
+{
+    $connection = \App\Models\ChannelConnection::where('id_channel', 1)
+        ->where('status_connection', 'connected')
+        ->latest()
+        ->first();
+
+    if (!$connection) {
+        throw new \Exception('Shopee is not connected.');
+    }
+
+    if (
+        !$connection->access_token_expired_at ||
+        now()->greaterThanOrEqualTo($connection->access_token_expired_at)
+    ) {
+        $newToken = $this->refreshAccessToken(
+            $connection->shop_id,
+            $connection->refresh_token
+        );
+
+        if (!empty($newToken['error'])) {
+            throw new \Exception($newToken['message'] ?? 'Failed to refresh Shopee token.');
+        }
+
+        $connection->update([
+            'access_token' => $newToken['access_token'] ?? $connection->access_token,
+            'refresh_token' => $newToken['refresh_token'] ?? $connection->refresh_token,
+            'access_token_expired_at' => now()->addSeconds($newToken['expire_in'] ?? 14400),
+            'refresh_token_expired_at' => now()->addDays(30),
+        ]);
+    }
+
+    return $connection->fresh();
+}
+
     public function getProducts(): array
 {
     $partnerId = trim((string) env('SHOPEE_PARTNER_ID'));
     $partnerKey = trim((string) env('SHOPEE_PARTNER_KEY'));
     $baseUrl = rtrim((string) env('SHOPEE_API_BASE_URL'), '/');
 
-    $connection = \App\Models\ChannelConnection::where('id_channel', 1)
-        ->where('status_connection', 'connected')
-        ->latest('id_connection')
-        ->first();
-
-    if (!$connection) {
-        return [
-            'success' => false,
-            'message' => 'Koneksi Shopee tidak ditemukan',
-        ];
-    }
+    $connection = $this->getValidConnection();
 
     $accessToken = $connection->access_token;
     $shopId = (int) $connection->shop_id;
@@ -215,17 +241,7 @@ class ShopeeService
     $partnerKey = trim((string) env('SHOPEE_PARTNER_KEY'));
     $baseUrl = rtrim((string) env('SHOPEE_API_BASE_URL'), '/');
 
-    $connection = \App\Models\ChannelConnection::where('id_channel', 1)
-        ->where('status_connection', 'connected')
-        ->latest('id_connection')
-        ->first();
-
-    if (!$connection) {
-        return [
-            'success' => false,
-            'message' => 'Koneksi Shopee tidak ditemukan',
-        ];
-    }
+    $connection = $this->getValidConnection();
 
     $accessToken = $connection->access_token;
     $shopId = (int) $connection->shop_id;
@@ -276,17 +292,7 @@ public function getOrders(): array
     $partnerKey = trim((string) env('SHOPEE_PARTNER_KEY'));
     $baseUrl = rtrim((string) env('SHOPEE_API_BASE_URL'), '/');
 
-    $connection = \App\Models\ChannelConnection::where('id_channel', 1)
-        ->where('status_connection', 'connected')
-        ->latest('id_connection')
-        ->first();
-
-    if (!$connection) {
-        return [
-            'success' => false,
-            'message' => 'Koneksi Shopee tidak ditemukan',
-        ];
-    }
+    $connection = $this->getValidConnection();
 
     $accessToken = $connection->access_token;
     $shopId = (int) $connection->shop_id;
@@ -341,23 +347,41 @@ public function getOrders(): array
     ];
 }
 
+public function refreshAccessToken($shopId, $refreshToken)
+{
+    $partnerId = trim((string) env('SHOPEE_PARTNER_ID'));
+    $partnerKey = trim((string) env('SHOPEE_PARTNER_KEY'));
+    $baseUrl = rtrim((string) env('SHOPEE_API_BASE_URL'), '/');
+
+    $path = '/api/v2/auth/access_token/get';
+    $timestamp = time();
+
+    $baseString = $partnerId . $path . $timestamp;
+    $sign = hash_hmac('sha256', $baseString, $partnerKey);
+
+    $url = $baseUrl . $path
+        . '?partner_id=' . $partnerId
+        . '&timestamp=' . $timestamp
+        . '&sign=' . $sign;
+
+    $body = [
+        'shop_id' => (int) $shopId,
+        'refresh_token' => $refreshToken,
+        'partner_id' => (int) $partnerId,
+    ];
+
+    $response = Http::post($url, $body);
+
+    return $response->json();
+}
+
 public function getOrderDetail(array $orderSnList): array
 {
     $partnerId = trim((string) env('SHOPEE_PARTNER_ID'));
     $partnerKey = trim((string) env('SHOPEE_PARTNER_KEY'));
     $baseUrl = rtrim((string) env('SHOPEE_API_BASE_URL'), '/');
 
-    $connection = \App\Models\ChannelConnection::where('id_channel', 1)
-        ->where('status_connection', 'connected')
-        ->latest('id_connection')
-        ->first();
-
-    if (!$connection) {
-        return [
-            'success' => false,
-            'message' => 'Koneksi Shopee tidak ditemukan',
-        ];
-    }
+    $connection = $this->getValidConnection();
 
     $accessToken = $connection->access_token;
     $shopId = (int) $connection->shop_id;
@@ -404,17 +428,7 @@ public function getProductModels(int $itemId): array
     $partnerKey = trim((string) env('SHOPEE_PARTNER_KEY'));
     $baseUrl = rtrim((string) env('SHOPEE_API_BASE_URL'), '/');
 
-    $connection = \App\Models\ChannelConnection::where('id_channel', 1)
-        ->where('status_connection', 'connected')
-        ->latest('id_connection')
-        ->first();
-
-    if (!$connection) {
-        return [
-            'success' => false,
-            'message' => 'Koneksi Shopee tidak ditemukan',
-        ];
-    }
+    $connection = $this->getValidConnection();
 
     $accessToken = $connection->access_token;
     $shopId = (int) $connection->shop_id;

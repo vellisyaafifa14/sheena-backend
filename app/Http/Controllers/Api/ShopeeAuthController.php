@@ -61,19 +61,21 @@ class ShopeeAuthController extends Controller
 
         // simpan/update koneksi baru
         \App\Models\ChannelConnection::updateOrCreate(
-            [
-                'id_channel' => 1,
-                'shop_id' => (string) $shopId,
-            ],
-            [
-                'shop_name' => 'Sheena',
-                'access_token' => $tokenData['access_token'] ?? null,
-                'refresh_token' => $tokenData['refresh_token'] ?? null,
-                'status_connection' => 'connected',
-            ]
-        );
+    [
+        'id_channel' => 1,
+        'shop_id' => (string) $shopId,
+    ],
+    [
+        'shop_name' => 'Sheena',
+        'access_token' => $tokenData['access_token'] ?? null,
+        'refresh_token' => $tokenData['refresh_token'] ?? null,
+        'access_token_expired_at' => now()->addSeconds($tokenData['expire_in'] ?? 14400),
+        'refresh_token_expired_at' => now()->addDays(30),
+        'status_connection' => 'connected',
+    ]
+);
     }
 
-    return redirect('http://localhost:5174/admin/dashboard?shopee=connected');
+    return redirect('http://localhost:5173/admin/dashboard?shopee=connected');
 }
 }
