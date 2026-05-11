@@ -74,11 +74,6 @@ class ShopeeAuthController extends Controller
         );
     }
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Shopee callback received',
-        'query' => $request->query(),
-        'token_result' => $tokenResult,
-    ]);
+    return redirect('http://localhost:5174/admin/dashboard?shopee=connected');
 }
 }
