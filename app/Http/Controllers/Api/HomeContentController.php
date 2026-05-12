@@ -54,7 +54,7 @@ class HomeContentController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Home content updated successfully',
+            'message' => 'Content updated successfully',
         ]);
     }
 }
