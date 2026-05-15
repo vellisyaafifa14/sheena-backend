@@ -142,7 +142,7 @@ while ($start->lte($end)) {
         if (!$listResult['success']) {
         return response()->json($listResult);
         }
-        
+
         $orders = $listResult['response']['response']['order_list'] ?? [];
         $allOrderList = array_merge($allOrderList, $orders);
 
@@ -171,6 +171,8 @@ while ($start->lte($end)) {
                 'message' => 'Koneksi Shopee tidak ditemukan',
             ], 404);
         }
+
+        dd(count($allOrderList));
 
         $orderSnList = collect($allOrderList)
             ->pluck('order_sn')
