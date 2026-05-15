@@ -76,6 +76,6 @@ class ShopeeAuthController extends Controller
 );
     }
 
-    return redirect('http://localhost:5173/admin/dashboard?shopee=connected');
+    return redirect('https://sheenafrontend.vercel.app/admin/dashboard?shopee=connected');
 }
 }
