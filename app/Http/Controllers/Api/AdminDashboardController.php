@@ -86,39 +86,47 @@ public function reportsSales()
     $start = now()->subMonths(3)->startOfDay();
     $end = now()->endOfDay();
 
-    $sales = \App\Models\Order::selectRaw('
-            DATE_FORMAT(ordered_at_channel, "%Y-%m") as month_key,
-            DATE_FORMAT(ordered_at_channel, "%M %Y") as month,
-            COUNT(*) as total_orders,
-            COALESCE(SUM(total_amount), 0) as total_revenue
-        ')
-        ->whereNotNull('ordered_at_channel')
+    $orders = \App\Models\Order::whereNotNull('ordered_at_channel')
         ->whereBetween('ordered_at_channel', [$start, $end])
-        ->groupByRaw('DATE_FORMAT(ordered_at_channel, "%Y-%m"), DATE_FORMAT(ordered_at_channel, "%M %Y")')
-        ->orderByRaw('DATE_FORMAT(ordered_at_channel, "%Y-%m") DESC')
+        ->orderByDesc('ordered_at_channel')
         ->get();
 
-    $sales = $sales->map(function ($item, $index) use ($sales) {
-        $previous = $sales[$index + 1] ?? null;
+    $grouped = $orders->groupBy(function ($order) {
+        return \Carbon\Carbon::parse($order->ordered_at_channel)->format('Y-m');
+    });
 
-        if (!$previous || $previous->total_revenue == 0) {
-            $growth = null;
+    $monthly = $grouped->map(function ($monthOrders, $monthKey) {
+        return [
+            'month_key' => $monthKey,
+            'month' => \Carbon\Carbon::createFromFormat('Y-m', $monthKey)->format('F Y'),
+            'total_orders' => $monthOrders->count(),
+            'total_revenue' => $monthOrders->sum('total_amount'),
+            'orders' => $monthOrders->map(function ($order) {
+                return [
+                    'order_sn' => $order->channel_order_id,
+                    'date' => \Carbon\Carbon::parse($order->ordered_at_channel)->format('Y-m-d'),
+                    'status' => $order->order_status,
+                    'total_amount' => $order->total_amount,
+                ];
+            })->values(),
+        ];
+    })->sortByDesc('month_key')->values();
+
+    $monthly = $monthly->map(function ($item, $index) use ($monthly) {
+        $previous = $monthly[$index + 1] ?? null;
+
+        if (!$previous || $previous['total_revenue'] == 0) {
+            $item['growth'] = null;
         } else {
-            $growth = round((($item->total_revenue - $previous->total_revenue) / $previous->total_revenue) * 100, 1);
+            $item['growth'] = round((($item['total_revenue'] - $previous['total_revenue']) / $previous['total_revenue']) * 100, 1);
         }
 
-        return [
-            'month_key' => $item->month_key,
-            'month' => $item->month,
-            'total_orders' => $item->total_orders,
-            'total_revenue' => $item->total_revenue,
-            'growth' => $growth,
-        ];
+        return $item;
     });
 
     return response()->json([
         'success' => true,
-        'data' => $sales,
+        'data' => $monthly,
     ]);
 }
 public function latestOrders()
