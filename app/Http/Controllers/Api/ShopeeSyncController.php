@@ -17,14 +17,14 @@ class ShopeeSyncController extends Controller
 
     public function syncProducts()
     {
-        $listResult = $this->shopeeService->getProducts();
-
-        if (
-            !$listResult['success'] ||
-            empty($listResult['response']['response']['item'])
-        ) {
-            return response()->json($listResult);
-        }
+        if (empty($allOrderList)) {
+    return response()->json([
+        'success' => true,
+        'message' => 'Tidak ada order dalam periode ini',
+        'saved_orders' => [],
+        'skipped_items' => [],
+    ]);
+}
 
         $connection = \App\Models\ChannelConnection::where('id_channel', 1)
             ->where('status_connection', 'connected')
@@ -139,6 +139,10 @@ while ($start->lte($end)) {
             $cursor
         );
 
+        if (!$listResult['success']) {
+        return response()->json($listResult);
+        }
+        
         $orders = $listResult['response']['response']['order_list'] ?? [];
         $allOrderList = array_merge($allOrderList, $orders);
 
