@@ -118,7 +118,36 @@ class ShopeeSyncController extends Controller
 
     public function syncOrders()
     {
-        $listResult = $this->shopeeService->getOrders();
+        $start = now()->startOfMonth();
+$end = now();
+
+$allOrderList = [];
+
+while ($start->lte($end)) {
+    $chunkEnd = $start->copy()->addDays(14)->endOfDay();
+
+    if ($chunkEnd->gt($end)) {
+        $chunkEnd = $end->copy();
+    }
+
+    $cursor = '';
+
+    do {
+        $listResult = $this->shopeeService->getOrders(
+            $start->timestamp,
+            $chunkEnd->timestamp,
+            $cursor
+        );
+
+        $orders = $listResult['response']['response']['order_list'] ?? [];
+        $allOrderList = array_merge($allOrderList, $orders);
+
+        $cursor = $listResult['response']['response']['next_cursor'] ?? '';
+        $hasMore = $listResult['response']['response']['more'] ?? false;
+    } while ($hasMore && $cursor);
+
+    $start = $chunkEnd->copy()->addSecond();
+}
 
         if (
             !$listResult['success'] ||
@@ -139,7 +168,7 @@ class ShopeeSyncController extends Controller
             ], 404);
         }
 
-        $orderSnList = collect($listResult['response']['response']['order_list'])
+        $orderSnList = collect($allOrderList)
             ->pluck('order_sn')
             ->filter()
             ->values()

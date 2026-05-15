@@ -286,7 +286,7 @@ public function getValidConnection()
     ];
 }
 
-public function getOrders(): array
+public function getOrders(?int $timeFrom = null, ?int $timeTo = null, string $cursor = ''): array
 {
     $partnerId = trim((string) env('SHOPEE_PARTNER_ID'));
     $partnerKey = trim((string) env('SHOPEE_PARTNER_KEY'));
@@ -300,8 +300,8 @@ public function getOrders(): array
     $timestamp = time();
     $path = '/api/v2/order/get_order_list';
 
-    $timeFrom = now()->subDays(15)->timestamp;
-    $timeTo = now()->timestamp;
+    $timeFrom = $timeFrom ?? now()->subDays(15)->timestamp;
+    $timeTo = $timeTo ?? now()->timestamp;
 
     $baseString = $partnerId . $path . $timestamp . $accessToken . $shopId;
     $sign = hash_hmac('sha256', $baseString, $partnerKey);
@@ -316,7 +316,7 @@ public function getOrders(): array
         'time_from' => $timeFrom,
         'time_to' => $timeTo,
         'page_size' => 20,
-        'cursor' => '',
+        'cursor' => $cursor,
         #'order_status' => 'READY_TO_SHIP',
         #'response_optional_fields' => 'order_status,total_amount,item_list',
     ]);
