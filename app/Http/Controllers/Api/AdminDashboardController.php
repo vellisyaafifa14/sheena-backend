@@ -25,22 +25,33 @@ class AdminDashboardController extends Controller
 }
     public function sales()
 {
-    $currentStart = now()->subDays(15);
-    $currentEnd = now();
+    $threeMonthsStart = now()->subMonths(3)->startOfDay();
+    $now = now()->endOfDay();
 
-    $previousStart = now()->subDays(30);
-    $previousEnd = now()->subDays(15);
+    $currentMonthStart = now()->startOfMonth();
+    $currentMonthEnd = now()->endOfDay();
 
-    $currentRevenue = \App\Models\Order::whereBetween('ordered_at_channel', [$currentStart, $currentEnd])
+    $previousMonthStart = now()->subMonth()->startOfMonth();
+    $previousMonthEnd = now()->subMonth()->endOfMonth();
+
+    $totalRevenue = \App\Models\Order::whereBetween('ordered_at_channel', [$threeMonthsStart, $now])
         ->sum('total_amount');
 
-    $currentOrders = \App\Models\Order::whereBetween('ordered_at_channel', [$currentStart, $currentEnd])
+    $totalOrders = \App\Models\Order::whereBetween('ordered_at_channel', [$threeMonthsStart, $now])
         ->count();
 
-    $previousRevenue = \App\Models\Order::whereBetween('ordered_at_channel', [$previousStart, $previousEnd])
+    $avgOrderValue = $totalOrders > 0 ? $totalRevenue / $totalOrders : 0;
+
+    $currentRevenue = \App\Models\Order::whereBetween('ordered_at_channel', [$currentMonthStart, $currentMonthEnd])
         ->sum('total_amount');
 
-    $previousOrders = \App\Models\Order::whereBetween('ordered_at_channel', [$previousStart, $previousEnd])
+    $currentOrders = \App\Models\Order::whereBetween('ordered_at_channel', [$currentMonthStart, $currentMonthEnd])
+        ->count();
+
+    $previousRevenue = \App\Models\Order::whereBetween('ordered_at_channel', [$previousMonthStart, $previousMonthEnd])
+        ->sum('total_amount');
+
+    $previousOrders = \App\Models\Order::whereBetween('ordered_at_channel', [$previousMonthStart, $previousMonthEnd])
         ->count();
 
     $currentAvgOrder = $currentOrders > 0 ? $currentRevenue / $currentOrders : 0;
@@ -57,45 +68,59 @@ class AdminDashboardController extends Controller
     return response()->json([
         'success' => true,
         'data' => [
-            'total_orders' => $currentOrders,
-            'total_revenue' => $currentRevenue,
-            'avg_order_value' => $currentAvgOrder,
+            'total_orders' => $totalOrders,
+            'total_revenue' => $totalRevenue,
+            'avg_order_value' => $avgOrderValue,
 
             'revenue_growth' => $growth($currentRevenue, $previousRevenue),
             'orders_growth' => $growth($currentOrders, $previousOrders),
             'avg_order_growth' => $growth($currentAvgOrder, $previousAvgOrder),
 
-            'period' => [
-                'current' => [
-                    'start' => $currentStart->toDateString(),
-                    'end' => $currentEnd->toDateString(),
-                ],
-                'previous' => [
-                    'start' => $previousStart->toDateString(),
-                    'end' => $previousEnd->toDateString(),
-                ],
-            ],
+            'period_label' => 'Last 3 Months',
+            'growth_label' => 'vs previous month',
         ]
     ]);
 }
 public function reportsSales()
 {
+    $start = now()->subMonths(3)->startOfDay();
+    $end = now()->endOfDay();
+
     $sales = \App\Models\Order::selectRaw('
-            DATE(ordered_at_channel) as date,
+            DATE_FORMAT(ordered_at_channel, "%Y-%m") as month_key,
+            DATE_FORMAT(ordered_at_channel, "%M %Y") as month,
             COUNT(*) as total_orders,
             COALESCE(SUM(total_amount), 0) as total_revenue
         ')
         ->whereNotNull('ordered_at_channel')
-        ->groupByRaw('DATE(ordered_at_channel)')
-        ->orderByRaw('DATE(ordered_at_channel) DESC')
+        ->whereBetween('ordered_at_channel', [$start, $end])
+        ->groupByRaw('DATE_FORMAT(ordered_at_channel, "%Y-%m"), DATE_FORMAT(ordered_at_channel, "%M %Y")')
+        ->orderByRaw('DATE_FORMAT(ordered_at_channel, "%Y-%m") DESC')
         ->get();
+
+    $sales = $sales->map(function ($item, $index) use ($sales) {
+        $previous = $sales[$index + 1] ?? null;
+
+        if (!$previous || $previous->total_revenue == 0) {
+            $growth = null;
+        } else {
+            $growth = round((($item->total_revenue - $previous->total_revenue) / $previous->total_revenue) * 100, 1);
+        }
+
+        return [
+            'month_key' => $item->month_key,
+            'month' => $item->month,
+            'total_orders' => $item->total_orders,
+            'total_revenue' => $item->total_revenue,
+            'growth' => $growth,
+        ];
+    });
 
     return response()->json([
         'success' => true,
         'data' => $sales,
     ]);
 }
-
 public function latestOrders()
 {
     $orders = \App\Models\Order::with('orderItems')
