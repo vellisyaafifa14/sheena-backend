@@ -118,7 +118,7 @@ class ShopeeSyncController extends Controller
 
     public function syncOrders()
     {
-        $start = now()->startOfMonth();
+        $start = now()->subMonths(3)->startOfDay();
         $end = now();
         $allOrderList = [];
 
