@@ -144,32 +144,34 @@ public function latestOrders()
 
 public function bestSellingProducts()
 {
-    $products = \App\Models\OrderItem::with('productListing.product')
-        ->selectRaw('
-            id_listing,
-            SUM(quantity) as total_sold,
-            AVG(price_snapshot) as avg_price
-        ')
-        ->groupBy('id_listing')
-        ->orderByDesc('total_sold')
-        ->limit(5)
-        ->get()
-        ->map(function ($item) {
+    $items = \App\Models\OrderItem::with('productListing.product')->get();
+
+    $products = $items
+        ->groupBy(function ($item) {
+            return $item->productListing?->id_product
+                ?? $item->title_snapshot;
+        })
+        ->map(function ($group) {
+            $first = $group->first();
+            $product = $first->productListing?->product;
+
             return [
                 'product_name' =>
-                    $item->productListing?->product?->product_name
-                    ?? $item->title_snapshot
+                    $product?->product_name
+                    ?? $first->title_snapshot
                     ?? 'Unknown Product',
 
                 'product_image' =>
-                    $item->productListing?->product?->product_image
+                    $product?->product_image
                     ?? null,
 
-                'total_sold' => $item->total_sold,
-
-                'avg_price' => $item->avg_price,
+                'total_sold' => $group->sum('quantity'),
+                'avg_price' => $group->avg('price_snapshot'),
             ];
-        });
+        })
+        ->sortByDesc('total_sold')
+        ->take(5)
+        ->values();
 
     return response()->json([
         'success' => true,
