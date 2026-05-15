@@ -17,19 +17,19 @@ class ShopeeSyncController extends Controller
 
     public function syncProducts()
     {
-        if (empty($allOrderList)) {
-    return response()->json([
-        'success' => true,
-        'message' => 'Tidak ada order dalam periode ini',
-        'saved_orders' => [],
-        'skipped_items' => [],
-    ]);
-}
+    $listResult = $this->shopeeService->getProducts();
 
-        $connection = \App\Models\ChannelConnection::where('id_channel', 1)
-            ->where('status_connection', 'connected')
-            ->latest('id_connection')
-            ->first();
+    if (
+        !$listResult['success'] ||
+        empty($listResult['response']['response']['item'])
+    ) {
+        return response()->json($listResult);
+    }
+
+    $connection = \App\Models\ChannelConnection::where('id_channel', 1)
+        ->where('status_connection', 'connected')
+        ->latest('id_connection')
+        ->first();
 
         if (!$connection) {
             return response()->json([
@@ -119,18 +119,17 @@ class ShopeeSyncController extends Controller
     public function syncOrders()
     {
         $start = now()->startOfMonth();
-$end = now();
+        $end = now();
+        $allOrderList = [];
 
-$allOrderList = [];
+        while ($start->lte($end)) {
+            $chunkEnd = $start->copy()->addDays(14)->endOfDay();
 
-while ($start->lte($end)) {
-    $chunkEnd = $start->copy()->addDays(14)->endOfDay();
+        if ($chunkEnd->gt($end)) {
+            $chunkEnd = $end->copy();
+        }
 
-    if ($chunkEnd->gt($end)) {
-        $chunkEnd = $end->copy();
-    }
-
-    $cursor = '';
+        $cursor = '';
 
     do {
         $listResult = $this->shopeeService->getOrders(
@@ -153,13 +152,14 @@ while ($start->lte($end)) {
     $start = $chunkEnd->copy()->addSecond();
 }
 
-        if (
-            !$listResult['success'] ||
-            empty($listResult['response']['response']['order_list'])
-        ) {
-            return response()->json($listResult);
-        }
-
+        if (empty($allOrderList)) {
+    return response()->json([
+        'success' => true,
+        'message' => 'Tidak ada order dalam periode ini',
+        'saved_orders' => [],
+        'skipped_items' => [],
+    ]);
+}
         $connection = \App\Models\ChannelConnection::where('id_channel', 1)
             ->where('status_connection', 'connected')
             ->latest('id_connection')
@@ -172,32 +172,34 @@ while ($start->lte($end)) {
             ], 404);
         }
 
-        dd(count($allOrderList));
-
         $orderSnList = collect($allOrderList)
             ->pluck('order_sn')
             ->filter()
             ->values()
             ->toArray();
 
-        $detailResult = $this->shopeeService->getOrderDetail($orderSnList);
-
-        if (
-            !$detailResult['success'] ||
-            empty($detailResult['response']['response']['order_list'])
-        ) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal ambil detail order',
-                'list_result' => $listResult,
-                'detail_result' => $detailResult,
-            ]);
-        }
-
         $savedOrders = [];
         $skippedItems = [];
 
-        foreach ($detailResult['response']['response']['order_list'] as $orderData) {
+$orderDetailList = [];
+
+foreach (array_chunk($orderSnList, 50) as $orderSnChunk) {
+    $detailResult = $this->shopeeService->getOrderDetail($orderSnChunk);
+
+    if (
+        !$detailResult['success'] ||
+        empty($detailResult['response']['response']['order_list'])
+    ) {
+        continue;
+    }
+
+    $orderDetailList = array_merge(
+        $orderDetailList,
+        $detailResult['response']['response']['order_list']
+    );
+}
+
+        foreach ($orderDetailList as $orderData) {
             $order = \App\Models\Order::updateOrCreate(
                 [
                     'channel_order_id' => $orderData['order_sn'],
