@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ChannelConnection;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Exports\SalesReportExport;
 
 class AdminDashboardController extends Controller
 {
@@ -128,6 +129,14 @@ public function reportsSales()
         'success' => true,
         'data' => $monthly,
     ]);
+}
+
+public function exportSalesReport()
+{
+    return Excel::download(
+        new SalesReportExport,
+        'sales_report.xlsx'
+    );
 }
 public function latestOrders()
 {
