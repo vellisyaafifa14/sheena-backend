@@ -7,7 +7,9 @@ use App\Models\Product;
 use App\Models\ChannelConnection;
 use App\Models\Order;
 use App\Models\OrderItem;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SalesReportExport;
+use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
@@ -131,10 +133,14 @@ public function reportsSales()
     ]);
 }
 
-public function exportSalesReport()
+
+public function exportSalesReport(Request $request)
 {
     return Excel::download(
-        new SalesReportExport,
+        new SalesReportExport(
+            $request->start_date,
+            $request->end_date
+        ),
         'sales_report.xlsx'
     );
 }
